@@ -253,6 +253,15 @@ function resolveThreadStoragePath(
 }
 
 export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
+  const processHostIds = new Set<string>();
+  for (const processHost of options.processHosts ?? []) {
+    if (processHostIds.has(processHost.implementationId)) {
+      throw new Error(
+        `Duplicate agent runtime process host implementation ID: ${processHost.implementationId}`,
+      );
+    }
+    processHostIds.add(processHost.implementationId);
+  }
   const additionalWorkspaceWriteRoots =
     options.additionalWorkspaceWriteRoots ?? [];
   const skillRoots = options.skillRoots ?? [];

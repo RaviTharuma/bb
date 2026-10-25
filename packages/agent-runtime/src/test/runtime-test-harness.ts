@@ -86,6 +86,7 @@ export interface CreateScriptedEchoLaunchOptions {
   providerOptions?: JsonObject;
   capabilities?: Partial<AgentRuntimeBridgeLaunch["capabilities"]>;
   modulePath?: string;
+  processHost?: AgentRuntimeBridgeLaunch["processHost"];
 }
 
 export function createScriptedEchoLaunch(
@@ -116,6 +117,9 @@ export function createScriptedEchoLaunch(
         : { scripted: scriptToJson(options.scripted) }),
     },
     envPassthrough: [],
+    ...(options.processHost === undefined
+      ? {}
+      : { processHost: options.processHost }),
   };
 }
 

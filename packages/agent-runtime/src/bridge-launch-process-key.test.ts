@@ -59,4 +59,32 @@ describe("bridgeLaunchProcessKey", () => {
       ),
     ).toHaveLength(3);
   });
+
+  it("keys process host implementation and compatibility but not required policy", () => {
+    const processHost = {
+      implementationId: "herdr",
+      compatibilityKey: "target-a",
+      required: false,
+    };
+    const key = bridgeLaunchProcessKey({ ...base, processHost });
+
+    expect(
+      bridgeLaunchProcessKey({
+        ...base,
+        processHost: { ...processHost, implementationId: "other" },
+      }),
+    ).not.toBe(key);
+    expect(
+      bridgeLaunchProcessKey({
+        ...base,
+        processHost: { ...processHost, compatibilityKey: "target-b" },
+      }),
+    ).not.toBe(key);
+    expect(
+      bridgeLaunchProcessKey({
+        ...base,
+        processHost: { ...processHost, required: true },
+      }),
+    ).toBe(key);
+  });
 });
