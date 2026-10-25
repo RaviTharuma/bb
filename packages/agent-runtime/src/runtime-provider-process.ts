@@ -10,6 +10,7 @@ import {
 import type { BridgeProtocolAdapter } from "./bridge-protocol-adapter.js";
 import type { CreateBridgeAdapterOptions } from "./provider-adapter.js";
 import { createProviderForId } from "./provider-registry.js";
+import { resolveProviderProcessHost } from "./process-host.js";
 import {
   ignoredJsonRpcResultSchema,
   PROVIDER_BRIDGE_RECORD_DIR_ENV,
@@ -73,6 +74,7 @@ interface RuntimeProviderProcessManagerArgs {
   onStderr: AgentRuntimeOptions["onStderr"];
   skillRoots: readonly AgentRuntimeSkillRoot[];
   workspacePath: string;
+  processHosts?: readonly import("./types.js").AgentRuntimeProcessHost[];
 }
 
 interface EnsureRuntimeProviderArgs {
@@ -178,7 +180,7 @@ export class RuntimeProviderProcessManager {
 
     const startPromise = (async () => {
       const adapter = this.getAdapter(args.providerId, args.bridgeLaunch);
-      const providerProcess = this.spawnProvider({
+      const providerProcess = await this.spawnProvider({
         adapter,
         processKey: args.processKey,
         providerId: args.providerId,
@@ -369,7 +371,7 @@ export class RuntimeProviderProcessManager {
     );
   }
 
-  private spawnProvider(args: SpawnProviderArgs): RuntimeProviderProcess {
+  private async spawnProvider(args: SpawnProviderArgs): Promise<RuntimeProviderProcess> {
     const processConfig = args.adapter.process;
     const env: NodeJS.ProcessEnv = {
       ...sanitizeInheritedChildProcessEnv({ env: process.env }),
@@ -381,12 +383,8 @@ export class RuntimeProviderProcessManager {
       env[PROVIDER_BRIDGE_RECORD_DIR_ENV] = join(recordRoot, args.providerId);
     }
 
-    const managed = spawnManagedProcess({
-      command: processConfig.command,
-      args: processConfig.args,
-      cwd: this.args.workspacePath,
-      env,
-    });
+    const request = { command: processConfig.command, args: processConfig.args, cwd: this.args.workspacePath, env };
+    const managed = await resolveProviderProcessHost({ request, direct: spawnManagedProcess, selection: args.adapter.processHost, hosts: this.args.processHosts });
     const { child } = managed;
     let finalizeExit: () => void = () => undefined;
     const exitFinalized = new Promise<void>((resolve) => {

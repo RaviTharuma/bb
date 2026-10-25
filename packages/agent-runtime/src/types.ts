@@ -15,6 +15,7 @@ import type {
   ToolCallRequest,
   ToolCallResponse,
 } from "@bb/domain";
+import type { ManagedProcess } from "@bb/process-utils";
 import type {
   ProviderHealthResult,
   CommandListResult,
@@ -89,6 +90,8 @@ export interface AgentRuntimeOptions {
   onProcessExit?: (info: AgentRuntimeProcessExitInfo) => void;
 
   onProviderRecovery?: (hint: AgentRuntimeProviderRecoveryHint) => void;
+
+  processHosts?: readonly AgentRuntimeProcessHost[];
 }
 
 export interface AgentRuntimeProviderRecoveryHint {
@@ -97,6 +100,24 @@ export interface AgentRuntimeProviderRecoveryHint {
   kind: ProviderRecoveryKind;
   message: string;
   retryable: boolean;
+}
+
+export interface AgentRuntimeProcessLaunch {
+  command: string;
+  args: string[];
+  cwd?: string;
+  env?: NodeJS.ProcessEnv;
+}
+
+export interface AgentRuntimeProcessHostSelection {
+  implementationId: string;
+  compatibilityKey: string;
+  required: boolean;
+}
+
+export interface AgentRuntimeProcessHost {
+  implementationId: string;
+  launch(request: AgentRuntimeProcessLaunch): Promise<ManagedProcess>;
 }
 
 export interface AgentRuntimeBridgeLaunch {
@@ -113,6 +134,7 @@ export interface AgentRuntimeBridgeLaunch {
   };
   providerOptions: JsonObject;
   envPassthrough: readonly string[];
+  processHost?: AgentRuntimeProcessHostSelection;
 }
 
 export interface EnsureProviderArgs {

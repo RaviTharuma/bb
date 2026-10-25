@@ -31,6 +31,7 @@ export function createProviderForId(
       ...bridgeLaunch.capabilities,
       permissionModes: [...bridgeLaunch.capabilities.permissionModes],
     },
+    processHost: bridgeLaunch.processHost,
     process: {
       command: adapterOptions.bridgeNodeExecutablePath ?? "node",
       args: [

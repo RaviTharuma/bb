@@ -353,6 +353,7 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
     onStderr: options.onStderr,
     skillRoots,
     workspacePath: options.workspacePath,
+    processHosts: options.processHosts,
   });
 
   function resolveProviderProcessKey(

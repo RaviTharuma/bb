@@ -43,7 +43,7 @@ import type {
 } from "@bb/provider-bridge-protocol/bridge-kit";
 import { decodeNormalizedProviderToolCallRequest } from "@bb/provider-bridge-protocol/bridge-kit";
 import { parseAvailableModelList } from "./shared/available-models.js";
-import type { AgentRuntimeProviderRecoveryHint } from "./types.js";
+import type { AgentRuntimeProcessHostSelection, AgentRuntimeProviderRecoveryHint } from "./types.js";
 
 export type ProviderRecoveryHint = Omit<
   AgentRuntimeProviderRecoveryHint,
@@ -60,6 +60,7 @@ export interface BridgeProtocolAdapter {
   capabilities: BridgeEnforcedCapabilities;
   readonly approvalEnforcedBy: "runtime" | "provider";
   process: { command: string; args: string[]; env?: Record<string, string> };
+  processHost?: AgentRuntimeProcessHostSelection;
   buildCommandPlan(command: AdapterCommand): ProviderCommandPlan;
   buildPostInitializeRequests(): readonly ProviderPostInitializeRequest[];
   parseModelListResult(result: unknown): {
@@ -100,6 +101,7 @@ interface BridgeProtocolAdapterOptions {
   id: string;
   capabilities: BridgeAdapterCapabilities;
   process: { command: string; args: string[]; env?: Record<string, string> };
+  processHost?: AgentRuntimeProcessHostSelection;
   staticProviderOptions?: Record<string, unknown>;
 }
 
@@ -211,6 +213,7 @@ export function createBridgeProtocolAdapter(
       return handshake.approvalEnforcedBy;
     },
     process: options.process,
+    processHost: options.processHost,
 
     buildCommandPlan(command: AdapterCommand): ProviderCommandPlan {
       switch (command.type) {
